@@ -12,7 +12,7 @@ An end-to-end Machine Learning Operations (MLOps) pipeline and real-time microse
 
 ### Visual Walkthrough
 
-
+https://github.com/user-attachments/assets/44a2edf0-5dc7-48a5-bdb0-6647deb0c9c7
 
 Once the FastAPI server is running locally, you can easily test the real-time inference engine using the auto-generated Swagger UI.
 
