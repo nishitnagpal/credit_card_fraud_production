@@ -10,6 +10,36 @@ An end-to-end Machine Learning Operations (MLOps) pipeline and real-time microse
 
 ---
 
+### Visual Walkthrough
+
+
+
+Once the FastAPI server is running locally, you can easily test the real-time inference engine using the auto-generated Swagger UI.
+
+**1. Access the UI:**
+Navigate to `http://127.0.0.1:8000/docs` in your browser.
+
+**2. Submit a Test Payload:**
+Click on the `POST /predict` endpoint, click **"Try it out"**, and paste the following JSON payload. This specific payload represents a high-risk transaction (e.g., an online order far from home, not using a PIN/Chip, with a massive purchase price ratio):
+
+```json
+{
+  "distance_from_home": 150.5,
+  "distance_from_last_transaction": 0.5,
+  "ratio_to_median_purchase_price": 8.5,
+  "repeat_retailer": 0,
+  "used_chip": 0,
+  "used_pin_number": 0,
+  "online_order": 1
+}
+```
+The payload submitted in the demo — `ratio_to_median_purchase_price: 8.5`, `used_chip: 0`, `online_order: 1` — was deliberately constructed to represent a high-risk account takeover pattern.
+
+**3. The Prediction Response:**
+Click "Execute". The dual-engine pipeline will process the payload in milliseconds and return a response indicating whether the transaction crossed the cost-optimized threshold (0.15) and is flagged as fraud.
+
+---
+
 ## Why This Project & Dataset
 
 I chose fraud detection deliberately — not because it is a popular Kaggle topic, but because class imbalance is one of the most consistently mishandled problems in production ML. Most tutorials SMOTE their way through it without considering what synthetic oversampling costs at inference time or how it pollutes real-world drift signals. I wanted to build something that would survive a code review at a real fintech company.
@@ -125,6 +155,8 @@ This baseline assumes all transaction features are passed in the API JSON payloa
 **Event-Driven Architecture:**
 A standard HTTP POST endpoint creates bottlenecks during traffic spikes (sale events, IPL match nights on gaming platforms). Decoupling the microservice by attaching it to an event stream (Apache Kafka or AWS Kinesis) allows the model to consume and score transactions asynchronously, without blocking the user's checkout flow. This is the standard architecture at scale for any Indian fintech operating on UPI rails.
 
+---
+
 ## Data Source
 
 The data is sourced from the [Kaggle Credit Card Fraud Dataset](https://www.kaggle.com/datasets/dhanushnarayananr/credit-card-fraud).
@@ -149,6 +181,7 @@ CreditCardFraudAnalysis/
 ├── Dockerfile                  # Containerization specifications
 └── requirements.txt            # Python environment dependencies
 ```
+
 
 ## Instructions
 

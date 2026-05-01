@@ -6,7 +6,7 @@ import joblib
 import os
 from src.features import engineer_features
 
-app = FastAPI(title="Adjoe Anti-Fraud Microservice")
+app = FastAPI(title="Anti-Fraud Microservice")
 
 # Load pre-trained model on startup
 MODEL_PATH = "models/xgb_fraud_model.pkl"
