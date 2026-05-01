@@ -12,7 +12,7 @@ An end-to-end Machine Learning Operations (MLOps) pipeline and real-time microse
 
 ### Visual Walkthrough
 
-https://github.com/user-attachments/assets/1bf8be25-0dba-496f-84d5-52ca0edf454a
+
 
 Once the FastAPI server is running locally, you can easily test the real-time inference engine using the auto-generated Swagger UI.
 
@@ -37,6 +37,17 @@ The payload submitted in the demo — `ratio_to_median_purchase_price: 8.5`, `us
 
 **3. The Prediction Response:**
 Click "Execute". The dual-engine pipeline will process the payload in milliseconds and return a response indicating whether the transaction crossed the cost-optimized threshold (0.15) and is flagged as fraud.
+
+** The Dual-Engine Response Explained**
+In the API response above, you will notice that `is_fraud` is `true`, but `is_unsupervised_anomaly` is `false`. This perfectly demonstrates the architectural divide of the dual-engine system:
+* **XGBoost (Supervised):** Flagged `true` (99.99% probability) because it was explicitly trained on labels. It instantly recognized the payload as a known historical fraud pattern (Account Takeover).
+* **Isolation Forest (Unsupervised):** Flagged `false` because it does not know what "fraud" is; it only looks for statistical outliers. Because this specific attack vector is common in the dataset, it forms a dense cluster. It is standard fraud, not an anomaly.
+* **The Concept Drift Loop:** If a fraudster invents a completely new attack vector tomorrow, XGBoost will likely miss it (`is_fraud: false`). However, because the data footprint will look highly unusual, the Isolation Forest will catch the statistical deviation (`is_unsupervised_anomaly: true`) and dynamically route the transaction to a "Human Review" queue, catching zero-day threats before model retraining occurs.
+
+** Batch Evaluation vs. Real-Time Inference**
+You will also notice the API returns an Expected Risk Mitigated ($100), rather than calculating exact error costs like the offline training script ($2,105 total loss). This highlights a core tension in production MLOps:
+* **Batch Evaluation (`run_pipeline.py`):** When evaluating the historical holdout set, the ground truth is known. We can perfectly calculate the cost of errors (False Positive = -$5, False Negative = -$100) to arrive at the exact $2,105 theoretical loss metric.
+* **Real-Time Inference (FastAPI):** At the millisecond of live inference, ground truth is unknown. If the model outputs a 0.88 probability, it blocks the transaction and assumes it just saved $100. The API cannot know if it just caused a $5 False Positive (annoying a legitimate user) until that user calls customer support the next day. Therefore, the microservice strictly outputs the **Expected Financial Action** at the moment of prediction.
 
 ---
 
